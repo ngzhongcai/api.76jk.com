@@ -62,7 +62,7 @@ const uploadPicture= function(event, callback) {
   const base64String= decodeURIComponent(event.body.picture);
   const buffer= Buffer.from(base64String, "base64");
   const params= {
-    Bucket: "flowers.76JK.COM",
+    Bucket: "flowers.76jk.com",
     Key: "images/" + event.body.flowerId + "/" + event.body.entryId + ".jpeg",
     Body: buffer,
     ContentType: "image/jpeg"

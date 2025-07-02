@@ -68,7 +68,7 @@ const updateFlowerIntoDynamo= function(event, callback) {
 }
 
 const generateQR= function(event, callback) {
-  const url= "https://flowers.digitively.com/" + event.body.flowerId + ".html";
+  const url= "https://76jk.com/" + event.body.flowerId + ".html";
   qrcode.toBuffer(url, function(err, res) { 
     err ? callback(err) : callback(null, res);
   });
@@ -76,7 +76,7 @@ const generateQR= function(event, callback) {
 
 const uploadQR= function(event, callback) {
   const params= {
-    Bucket: "flowers.76JK.COM",
+    Bucket: "flowers.76jk.com",
     Key: "images/" + event.body.flowerId + "/" + "QR_" + event.body.flowerId + ".png",
     Body: event.body.qr,
     ContentType: "image/png"

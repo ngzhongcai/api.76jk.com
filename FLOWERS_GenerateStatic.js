@@ -47,13 +47,13 @@ const generateStatic= async function(event, callback) {
     headless: "shell",
   });
   const page= await browser.newPage();
-  await page.goto("https://flowers.digitively.com/index.html");
+  await page.goto("https://76jk.com/index.html");
   await page.waitForSelector("#login-email"); 
   await page.type("#login-email", "ngzhongcai@digitively.com");
   await page.type("#login-password", "Gjw7vda9");
   await page.click("#login-btn");
   await page.waitForSelector("#flowers", { visible: true });
-  await page.goto("https://flowers.digitively.com/flower.html?flowerId=" + event.body.flowerId);
+  await page.goto("https://76jk.com/flower.html?flowerId=" + event.body.flowerId);
   await page.waitForSelector("#h1Actions", { visible: true });
   event.body.html= await page.content();
   await browser.close();
@@ -62,7 +62,7 @@ const generateStatic= async function(event, callback) {
 
 const uploadStatic= function(event, callback) {
   var params= {
-    Bucket: "flowers.76JK.COM",
+    Bucket: "flowers.76jk.com",
     Key: "statics/" + event.body.flowerId + ".html",
     Body: event.body.html,
     ContentType: "text/html",
