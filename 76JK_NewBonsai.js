@@ -1,5 +1,5 @@
 "use strict";
-const SECRET= "930098a0-1efa-4cbf-b7b3-7471db09d1d7";
+const SECRET= "cbebfd6c-84da-439b-853b-6a0a50b63edb";
 const aws= require("aws-sdk"); const jwt= require("jsonwebtoken");
 const s3= new aws.S3({ region: "ap-southeast-1" });
 const ddc= new aws.DynamoDB.DocumentClient({ region: "ap-southeast-1" });
