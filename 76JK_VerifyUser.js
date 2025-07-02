@@ -33,20 +33,20 @@ exports.handler= function(event, context, callback) {
 }
 
 var queryUserFromDynamo= function(event, callback) {
-	var params= {
-		TableName: "76JK-USERS", IndexName: "EMAIL",
-		KeyConditionExpression: "email= :email",
-		ExpressionAttributeValues: { ":email": event.body.email }
-	}
-	ddc.query(params, function(err, res) {
-		err ? callback(err) : callback(null, res);
-	});
+  var params= {
+    TableName: "76JK-USERS", IndexName: "EMAIL",
+    KeyConditionExpression: "email= :email",
+    ExpressionAttributeValues: { ":email": event.body.email }
+  }
+  ddc.query(params, function(err, res) {
+    err ? callback(err) : callback(null, res);
+  });
 }
 
 const hashPassword= function(event, callback) {
-	bcrypt.hash(event.body.password, salt, function(err, res) {
-		err ? callback(err) : callback(null, res);
-	});
+  bcrypt.hash(event.body.password, salt, function(err, res) {
+    err ? callback(err) : callback(null, res);
+  });
 }
 
 const updateUserIntoDynamo= function(event, callback) {
@@ -56,24 +56,24 @@ const updateUserIntoDynamo= function(event, callback) {
     "bonsais= :bonsais, " +
     "token_= :token_, " +
     "isVerified= :isVerified, " +
-		"lastModified= :lastModified, " +
-		"lastCreated= :lastCreated";
-	const expressionAttributeValues= { 
-		":email": event.body.email,
+    "lastModified= :lastModified, " +
+    "lastCreated= :lastCreated";
+  const expressionAttributeValues= { 
+    ":email": event.body.email,
     ":password": event.body.hashed,
     ":bonsais": [],
     ":token_": event.body.token,
     ":isVerified": false,
-		":lastModified": event.body.now,
-		":lastCreated": event.body.now
-	}
-	const params= {
-		TableName: "76JK-USERS",
-		Key: { "userId": event.body.userId },
-		UpdateExpression: updateExpression,
-		ExpressionAttributeValues: expressionAttributeValues,
-		ReturnValues: "UPDATED_NEW"
-	}
+    ":lastModified": event.body.now,
+    ":lastCreated": event.body.now
+  }
+  const params= {
+    TableName: "76JK-USERS",
+    Key: { "userId": event.body.userId },
+    UpdateExpression: updateExpression,
+    ExpressionAttributeValues: expressionAttributeValues,
+    ReturnValues: "UPDATED_NEW"
+  }
   ddc.update(params, function(err, res) {
     err ? callback(err) : callback(null, res.Attributes);
   });
@@ -82,7 +82,7 @@ const updateUserIntoDynamo= function(event, callback) {
 const processEmailViaSNS= function(event, callback) {
   var msg= {}; msg.subject= "Get started with your Bonsai journal 🌱"; 
   msg.fromAddress= "hello@76jk.com"; msg.accountId= 847946740020;
-	msg.toAddresses= [event.body.email];
+  msg.toAddresses= [event.body.email];
   msg.emailBody = 
   "<div style='font-family:Arial,sans-serif;font-size:16px;line-height:1.5;color:#333'>" +
     "<p>Hi there!</p>" +
