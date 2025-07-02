@@ -4,35 +4,45 @@ const aws= require("aws-sdk");
 const ddc= new aws.DynamoDB.DocumentClient({ region: "ap-southeast-1" }); 
 const sns= new aws.SNS({ region: "ap-southeast-1" });
 const uuid= require("uuid");
+const bcrypt= require("bcryptjs"); const salt= 10;
 
 exports.handler= function(event, context, callback) {
   console.log(event); event.body.userId= uuid.v4();
   const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
-  updateUserIntoDynamo(event, function(err, res) {
-    now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_USER_INTO_DYNAMO::" + (now- last)); last= now;
-    if(err) { context.fail("501::76JK_NEW_USER::UPDATE_USER_INTO_DYNAMO::" + err.toString()); return; }
-    processEmailViaSNS(event, function(err, res) {
+  hashPassword(event, function(err, res) {
+    now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("HASH_PASSWORD::" + (now- last)); last= now;
+    if(err) { context.fail("501::76JK_NEW_USER::HASH_PASSWORD::" + err.toString()); return; }
+    event.body.hashed= res;
+    updateUserIntoDynamo(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_USER_INTO_DYNAMO::" + (now- last)); last= now;
-      if(err) { context.fail("501::76JK_NEW_USER::UPDATE_USER_INTO_DYNAMO::" + err.toString()); return; }
-      const response= { userId: event.body.userId };
-      context.succeed({ "response": response });
+      if(err) { context.fail("502::76JK_NEW_USER::UPDATE_USER_INTO_DYNAMO::" + err.toString()); return; }
+      processEmailViaSNS(event, function(err, res) {
+        now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_USER_INTO_DYNAMO::" + (now- last)); last= now;
+        if(err) { context.fail("503::76JK_NEW_USER::UPDATE_USER_INTO_DYNAMO::" + err.toString()); return; }
+        const response= { userId: event.body.userId };
+        context.succeed({ "response": response });
+      });
     });
   });
 }
 
+const hashPassword= function(event, callback) {
+	bcrypt.hash(event.body.password, salt, function(err, res) {
+		err ? callback(err) : callback(null, res);
+	});
+}
+
 const updateUserIntoDynamo= function(event, callback) {
   const updateExpression=
-    "SET userId= :userId, " +
-    "email= :email, " +
+    "SET email= :email, " +
     "password= :password, " +
     "bonsais= :bonsais, " +
     "isVerified= :isVerified, " +
 		"lastModified= :lastModified, " +
 		"lastCreated= :lastCreated";
-	const expressionAttributeValues= {
-		":userId": event.body.userId,
+	const expressionAttributeValues= { 
 		":email": event.body.email,
-    ":password": " ",
+    ":password": event.body.hashed,
     ":bonsais": [],
     ":isVerified": false,
 		":lastModified": event.body.now,
