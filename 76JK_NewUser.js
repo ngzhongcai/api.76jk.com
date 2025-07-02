@@ -90,8 +90,8 @@ const processEmailViaSNS= function(event, callback) {
     "<p>We're excited to have you join <strong>76JK</strong> — your personal Bonsai journal that helps you capture, " + 
     "organize, and reflect on your bonsai journey.</p>" +
     "<p>Before we get started, please verify your email address by visiting the following link:</p>" + 
-    "<p><a href='https://76jk.com/api/" + event.body.userId + "/" + event.body.token + "'>" +
-    "https://76jk.com/api/" + event.body.userId + "/" + event.body.token + "</a></p>" +
+    "<p><a href='https://api.76jk.com/verify/" + event.body.userId + "/" + event.body.token + "'>" +
+    "https://api.76jk.com/verify/" + event.body.userId + "/" + event.body.token + "</a></p>" +
     "<br/><p>Thanks for growing with us 🌿<br/>– The 76JK Team</p>" +
   "</div>";
   var message= JSON.stringify(msg);
