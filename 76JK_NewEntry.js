@@ -8,32 +8,32 @@ const uuid= require("uuid");
 exports.handler= function(event, context, callback) {
   console.log(event); event.body.entryId= uuid.v4();
 	const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
-  verifyFlowers(event, function(err, res) {
-    now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_FLOWERS::" + (now- last)); last= now;
-		if(err) { context.fail("501::FLOWERS_NEW_ENTRY::VERIFY_FLOWERS::" + err.toString()); return; }
-		event.flowers= res; if(event.flowers.redirect_uri) { context.fail("401::FLOWERS_NEW_ENTRY::NOT_ALLOWED"); return; }
-    updateFlowerIntoDynamo(event, function(err, res) {
-      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_FLOWER_INTO_DYNAMO::" + (now- last)); last= now;
-      if(err) { context.fail("502::FLOWERS_NEW_ENTRY::UPDATE_FLOWER_INTO_DYNAMO::" + err.toString()); return; }
+  verify76JK(event, function(err, res) {
+    now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_76JK::" + (now- last)); last= now;
+		if(err) { context.fail("501::76JK_NEW_ENTRY::VERIFY_76JK::" + err.toString()); return; }
+		event.jk= res; if(event.jk.redirect_uri) { context.fail("401::76JK_NEW_ENTRY::NOT_ALLOWED"); return; }
+    updateBonsaiIntoDynamo(event, function(err, res) {
+      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_BONSAI_INTO_DYNAMO::" + (now- last)); last= now;
+      if(err) { context.fail("502::76JK_NEW_ENTRY::UPDATE_BONSAI_INTO_DYNAMO::" + err.toString()); return; }
       uploadPicture(event, function() {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_PICTURE::" + (now- last)); last= now;
-        if(err) { context.fail("503::FLOWERS_NEW_ENTRY::UPLOAD_PICTURE::" + err.toString()); return; }
+        if(err) { context.fail("503::76JK_NEW_ENTRY::UPLOAD_PICTURE::" + err.toString()); return; }
         const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
-        const response= { flowerId: event.body.flowerId };
+        const response= { bonsaiId: event.body.bonsaiId };
         context.succeed({ "response": response });
       });
     });
   });
 }
 
-const verifyFlowers= function(event, callback) {
-	jwt.verify(event.body.flowers, SECRET, function(err, res) {
+const verify76JK= function(event, callback) {
+	jwt.verify(event.body.jk, SECRET, function(err, res) {
     if(err && err.name=="TokenExpiredError") { callback(null, "TokenExpiredError"); return; }
     err ? callback(err) : callback(null, res);
   });
 }
 
-const updateFlowerIntoDynamo= function(event, callback) {
+const updateBonsaiIntoDynamo= function(event, callback) {
   const updateExpression=
     "SET entries= list_append(entries, :entry)";
 	const expressionAttributeValues= {     
@@ -46,8 +46,8 @@ const updateFlowerIntoDynamo= function(event, callback) {
     }]
 	}
 	const params= {
-		TableName: "FLOWERS-76JK",
-    Key: { "flowerId": event.body.flowerId },
+		TableName: "BONSAIS-76JK",
+    Key: { "bonsaiId": event.body.bonsaiId },
 		UpdateExpression: updateExpression,
 		ExpressionAttributeValues: expressionAttributeValues,
 		ReturnValues: "UPDATED_NEW"
@@ -62,8 +62,8 @@ const uploadPicture= function(event, callback) {
   const base64String= decodeURIComponent(event.body.picture);
   const buffer= Buffer.from(base64String, "base64");
   const params= {
-    Bucket: "flowers.76jk.com",
-    Key: "images/" + event.body.flowerId + "/" + event.body.entryId + ".jpeg",
+    Bucket: "console.76jk.com",
+    Key: "images/" + event.body.bonsaiId + "/" + event.body.entryId + ".jpeg",
     Body: buffer,
     ContentType: "image/jpeg"
   }

@@ -7,27 +7,27 @@ var lambda= new aws.Lambda({ region: "ap-southeast-1" });
 const uuid= require("uuid"); const qrcode= require("qrcode");
 
 exports.handler= function(event, context, callback) {
-  console.log(event); event.body.flowerId= uuid.v4();
+  console.log(event); event.body.bonsaiId= uuid.v4();
 	const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
-  verifyFlowers(event, function(err, res) {
-    now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_FLOWERS::" + (now- last)); last= now;
-		if(err) { context.fail("501::FLOWERS_NEW_FLOWER::VERIFY_FLOWERS::" + err.toString()); return; }
-		event.flowers= res; if(event.flowers.redirect_uri) { context.fail("401::FLOWERS_NEW_FLOWER::NOT_ALLOWED"); return; }
-    updateFlowerIntoDynamo(event, function(err, res) {
-      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_FLOWER_INTO_DYNAMO::" + (now- last)); last= now;
-      if(err) { context.fail("502::FLOWERS_NEW_FLOWER::UPDATE_FLOWER_INTO_DYNAMO::" + err.toString()); return; }
+  verify76JK(event, function(err, res) {
+    now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_76JK::" + (now- last)); last= now;
+		if(err) { context.fail("501::76JK_NEW_BONSAI::VERIFY_76JK::" + err.toString()); return; }
+		event.jk= res; if(event.jk.redirect_uri) { context.fail("401::76JK_NEW_BONSAI::NOT_ALLOWED"); return; }
+    updateBonsaiIntoDynamo(event, function(err, res) {
+      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_BONSAI_INTO_DYNAMO::" + (now- last)); last= now;
+      if(err) { context.fail("502::76JK_NEW_BONSAI::UPDATE_BONSAI_INTO_DYNAMO::" + err.toString()); return; }
       generateQR(event, function(err, res) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GENERATE_QR::" + (now- last)); last= now;
-        if(err) { context.fail("504::FLOWERS_NEW_FLOWER::GENERATE_QR::" + err.toString()); return; } 
+        if(err) { context.fail("504::76JK_NEW_BONSAI::GENERATE_QR::" + err.toString()); return; } 
         event.body.qr= res;
         uploadQR(event, function(err, res) {
           now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_QR::" + (now- last)); last= now;
-          if(err) { context.fail("505::FLOWERS_NEW_FLOWER::UPLOAD_QR::" + err.toString()); return; }
+          if(err) { context.fail("505::76JK_NEW_BONSAI::UPLOAD_QR::" + err.toString()); return; }
           invokeCreateEntry(event, function(err, res) {
             now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("INVOKE_CREATE_ENTRY::" + (now- last)); last= now;
-            if(err) { context.fail("503::FLOWERS_NEW_FLOWER::INVOKE_CREATE_ENTRY::" + err.toString()); return; }
+            if(err) { context.fail("503::76JK_NEW_BONSAI::INVOKE_CREATE_ENTRY::" + err.toString()); return; }
             const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
-            const response= { flowerId: event.body.flowerId };
+            const response= { bonsaiId: event.body.bonsaiId };
             context.succeed({ "response": response });
           });
         });
@@ -36,14 +36,14 @@ exports.handler= function(event, context, callback) {
   });
 }
 
-const verifyFlowers= function(event, callback) {
-	jwt.verify(event.body.flowers, SECRET, function(err, res) {
+const verify76JK= function(event, callback) {
+	jwt.verify(event.body.jk, SECRET, function(err, res) {
     if(err && err.name=="TokenExpiredError") { callback(null, "TokenExpiredError"); return; }
     err ? callback(err) : callback(null, res);
   });
 }
 
-const updateFlowerIntoDynamo= function(event, callback) {
+const updateBonsaiIntoDynamo= function(event, callback) {
   const updateExpression=
     "SET name_= :name_, " + 
     "firstCreated= :firstCreated, " + 
@@ -56,8 +56,8 @@ const updateFlowerIntoDynamo= function(event, callback) {
     ":entries": []
 	}
 	const params= {
-		TableName: "FLOWERS-76JK",
-    Key: { "flowerId": event.body.flowerId },
+		TableName: "BONSAIS-76JK",
+    Key: { "bonsaiId": event.body.bonsaiId },
 		UpdateExpression: updateExpression,
 		ExpressionAttributeValues: expressionAttributeValues,
 		ReturnValues: "ALL_NEW"
@@ -68,7 +68,7 @@ const updateFlowerIntoDynamo= function(event, callback) {
 }
 
 const generateQR= function(event, callback) {
-  const url= "https://76jk.com/" + event.body.flowerId + ".html";
+  const url= "https://76jk.com/" + event.body.bonsaiId + ".html";
   qrcode.toBuffer(url, function(err, res) { 
     err ? callback(err) : callback(null, res);
   });
@@ -76,8 +76,8 @@ const generateQR= function(event, callback) {
 
 const uploadQR= function(event, callback) {
   const params= {
-    Bucket: "flowers.76jk.com",
-    Key: "images/" + event.body.flowerId + "/" + "QR_" + event.body.flowerId + ".png",
+    Bucket: "console.76jk.com",
+    Key: "images/" + event.body.bonsaiId + "/" + "QR_" + event.body.bonsaiId + ".png",
     Body: event.body.qr,
     ContentType: "image/png"
   }
@@ -88,7 +88,7 @@ const uploadQR= function(event, callback) {
 
 const invokeCreateEntry= function(event, callback) {
   const params= {
-		FunctionName: "FLOWERS_NewEntry",
+		FunctionName: "76JK_NewEntry",
 		Payload: JSON.stringify(event)
   }
   lambda.invoke(params, function(err, res) {
