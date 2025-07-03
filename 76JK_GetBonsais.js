@@ -12,9 +12,9 @@ exports.handler= function(event, context, callback) {
     event.jk= res; if(event.jk.redirect_uri) { context.fail("401::76JK_GET_BONSAIS::NOT_ALLOWED"); return; }
     queryBonsaisFromDynamo(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("QUERY_BONSAIS_FROM_DYNAMO::" + (now- last)); last= now;
-      if(err) { context.fail("502::76JK_GET_BONSAIS::QUERY_BONSAIS_FROM_DYNAMO::" + err.toString()); return; } 
+      if(err) { context.fail("502::76JK_GET_BONSAIS::QUERY_BONSAIS_FROM_DYNAMO::" + err.toString()); return; }
       const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj); 
-      context.succeed({ "response": res });
+      context.succeed({ "response": res.Items });
     });
   });
 }
@@ -28,7 +28,7 @@ const verify76JK= function(event, callback) {
 
 const queryBonsaisFromDynamo= function(event, callback) {
 	const params= {
-		TableName: "76JK-USERS", IndexName: "USERID",
+		TableName: "76JK-BONSAIS", IndexName: "USERID",
 		KeyConditionExpression: "userId= :userId",
 		ExpressionAttributeValues: { ":userId": event.jk.userId }
 	}
