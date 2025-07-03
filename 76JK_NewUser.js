@@ -24,6 +24,7 @@ exports.handler= function(event, context, callback) {
         processEmailViaSNS(event, function(err, res) {
           now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_USER_INTO_DYNAMO::" + (now- last)); last= now;
           if(err) { context.fail("504::76JK_NEW_USER::UPDATE_USER_INTO_DYNAMO::" + err.toString()); return; }
+          const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
           const response= { userId: event.body.userId };
           context.succeed({ "response": response });
         });
@@ -32,8 +33,8 @@ exports.handler= function(event, context, callback) {
   });
 }
 
-var queryUserFromDynamo= function(event, callback) {
-	var params= {
+const queryUserFromDynamo= function(event, callback) {
+	const params= {
 		TableName: "76JK-USERS", IndexName: "EMAIL",
 		KeyConditionExpression: "email= :email",
 		ExpressionAttributeValues: { ":email": event.body.email }
