@@ -14,6 +14,7 @@ exports.handler= function(event, context, callback) {
     updateUserIntoDynamo(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_USER_INTO_DYNAMO::" + (now- last)); last= now;
       if(err) { context.fail("502::76JK_VERIFY_USER::UPDATE_USER_INTO_DYNAMO::" + err.toString()); return; }
+      event.user= res;
       generateResponse(event, function(err, res) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GENERATE_RESPONSE::" + (now- last)); last= now;
         if(err) { context.fail("503::76JK_VERIFY_USER::GENERATE_RESPONSE::" + err.toString()); return; }
@@ -48,7 +49,7 @@ const updateUserIntoDynamo= function(event, callback) {
 		Key: { "userId": event.body.userId },
 		UpdateExpression: updateExpression,
 		ExpressionAttributeValues: expressionAttributeValues,
-		ReturnValues: "UPDATED_NEW"
+		ReturnValues: "ALL_NEW"
 	}
   ddc.update(params, function(err, res) {
     err ? callback(err) : callback(null, res.Attributes);
@@ -61,7 +62,9 @@ const generateResponse= function(event, callback) {
     response.headers.Location= "https://76jk.com";
     callback(null, response); return;
   }
-  var token= {}; token.userId= event.body.userId;
+  var token= {}; 
+  token.userId= event.body.userId; 
+  token.email= event.user.email;
   const jk= jwt.sign(token, SECRET, { expiresIn: 31536000 });
   response.headers.Location= "https://76jk.com/verified.html?jk=" + jk;
   callback(null, response); return;

@@ -15,6 +15,7 @@ exports.handler= function(event, context, callback) {
     updateUserIntoDynamo(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_USER_INTO_DYNAMO::" + (now- last)); last= now;
       if(err) { context.fail("503::76JK_CHANGE::UPDATE_USER_INTO_DYNAMO::" + err.toString()); return; }
+      event.user= res;
       generateResponse(event, function(err, res) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GENERATE_RESPONSE::" + (now- last)); last= now;
         if(err) { context.fail("503::76JK_CHANGE::GENERATE_RESPONSE::" + err.toString()); return; }
@@ -45,7 +46,7 @@ const updateUserIntoDynamo= function(event, callback) {
     Key: { "userId": event.body.userId },
     UpdateExpression: updateExpression,
     ExpressionAttributeValues: expressionAttributeValues,
-    ReturnValues: "UPDATED_NEW"
+    ReturnValues: "ALL_NEW"
   }
   ddc.update(params, function(err, res) {
     err ? callback(err) : callback(null, res.Attributes);
@@ -55,5 +56,6 @@ const updateUserIntoDynamo= function(event, callback) {
 var generateResponse= function(event, callback) {
   var token= {};
   token.userId= event.body.userId;
+  token.email= event.user.email;
   callback(null, jwt.sign(token, SECRET, { expiresIn: 31536000 }));
 }
