@@ -8,11 +8,11 @@ exports.handler= function(event, context, callback) {
   const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
   verify76JK(event, function(err, res) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_76JK::" + (now- last)); last= now;
-    if(err) { context.fail("501::76JK_GET_BONSAIS::VERIFY_76JK::" + err.toString()); return; }
+    if(err) { context.fail("501::76JK_GET_COLLECTION::VERIFY_76JK::" + err.toString()); return; }
     event.jk= res; if(event.jk.redirect_uri) { context.fail("401::76JK_GET_BONSAIS::NOT_ALLOWED"); return; }
     queryBonsaisFromDynamo(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("ITERATE_SCAN_BONSAIS_FROM_DYNAMO::" + (now- last)); last= now;
-      if(err) { context.fail("502::76JK_GET_BONSAIS::ITERATE_SCAN_BONSAIS_FROM_DYNAMO::" + err.toString()); return; } 
+      if(err) { context.fail("502::76JK_GET_COLLECTION::ITERATE_SCAN_BONSAIS_FROM_DYNAMO::" + err.toString()); return; } 
       const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj); 
       context.succeed({ "response": res });
     });
