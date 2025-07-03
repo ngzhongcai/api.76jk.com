@@ -11,10 +11,10 @@ exports.handler= function(event, context, callback) {
     if(err) { context.fail("501::76JK_GET_BONSAIS::VERIFY_76JK::" + err.toString()); return; }
     event.jk= res; if(event.jk.redirect_uri) { context.fail("401::76JK_GET_BONSAIS::NOT_ALLOWED"); return; }
     queryBonsaisFromDynamo(event, function(err, res) {
-      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("QUERY_BONSAIS_FROM_DYNAMO::" + (now- last)); last= now;
-      if(err) { context.fail("502::76JK_GET_BONSAIS::QUERY_BONSAIS_FROM_DYNAMO::" + err.toString()); return; }
+      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("ITERATE_SCAN_BONSAIS_FROM_DYNAMO::" + (now- last)); last= now;
+      if(err) { context.fail("502::76JK_GET_BONSAIS::ITERATE_SCAN_BONSAIS_FROM_DYNAMO::" + err.toString()); return; } 
       const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj); 
-      context.succeed({ "response": res.Items });
+      context.succeed({ "response": res });
     });
   });
 }
@@ -32,7 +32,12 @@ const queryBonsaisFromDynamo= function(event, callback) {
 		KeyConditionExpression: "userId= :userId",
 		ExpressionAttributeValues: { ":userId": event.jk.userId }
 	}
+  if(event.lastEvaluatedKey) { params.ExclusiveStartKey= event.lastEvaluatedKey; }
 	ddc.query(params, function(err, res) {
-		err ? callback(err) : callback(null, res);
+    if(err) { callback(err); return; }
+    event.lastEvaluatedKey= res.LastEvaluatedKey || undefined;
+    event.records= event.records ? event.records.concat(res.Items) : res.Items;
+    if(!event.lastEvaluatedKey) { callback(null, event.records); return; }
+    queryBonsaisFromDynamo(event, callback);
 	});
 }
