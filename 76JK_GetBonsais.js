@@ -10,11 +10,11 @@ exports.handler= function(event, context, callback) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_76JK::" + (now- last)); last= now;
     if(err) { context.fail("501::76JK_GET_BONSAIS::VERIFY_76JK::" + err.toString()); return; }
     event.jk= res; if(event.jk.redirect_uri) { context.fail("401::76JK_GET_BONSAIS::NOT_ALLOWED"); return; }
-    iterateScanBonsaisFromDynamo(event, function(err, res) {
-      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("ITERATE_SCAN_BONSAIS_FROM_DYNAMO::" + (now- last)); last= now;
-      if(err) { context.fail("502::76JK_GET_BONSAIS::ITERATE_SCAN_BONSAIS_FROM_DYNAMO::" + err.toString()); return; } 
+    queryBonsaisFromDynamo(event, function(err, res) {
+      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("QUERY_BONSAIS_FROM_DYNAMO::" + (now- last)); last= now;
+      if(err) { context.fail("502::76JK_GET_BONSAIS::QUERY_BONSAIS_FROM_DYNAMO::" + err.toString()); return; } 
       const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj); 
-      context.succeed({ "response": event.records });
+      context.succeed({ "response": res });
     });
   });
 }
@@ -26,13 +26,13 @@ const verify76JK= function(event, callback) {
   });
 }
 
-const iterateScanBonsaisFromDynamo= function(event, callback) {
-  var params= { TableName: "76JK-BONSAIS" }
-	if(event.lastEvaluatedKey) { params.ExclusiveStartKey= event.lastEvaluatedKey; }
-	ddc.scan(params, function(err, res) {
-    if(err) { callback(err); return; } 
-    event.lastEvaluatedKey= res.LastEvaluatedKey ? res.LastEvaluatedKey : undefined;
-    event.records= event.records ? event.records.concat(res.Items) : res.Items; 
-    event.lastEvaluatedKey ? iterateScanBonsaisFromDynamo(event, callback) : callback();
-  });
+const queryBonsaisFromDynamo= function(event, callback) {
+	const params= {
+		TableName: "76JK-USERS", IndexName: "USERID",
+		KeyConditionExpression: "userId= :userId",
+		ExpressionAttributeValues: { ":userId": event.jk.userId }
+	}
+	ddc.query(params, function(err, res) {
+		err ? callback(err) : callback(null, res);
+	});
 }
