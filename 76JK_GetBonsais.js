@@ -1,6 +1,6 @@
 "use strict";
 const SECRET= "cbebfd6c-84da-439b-853b-6a0a50b63edb";
-const aws= require("aws-sdk"); const jwt= require("jsonwebtoken"); var async= require("async");
+const aws= require("aws-sdk"); const jwt= require("jsonwebtoken");
 const ddc= new aws.DynamoDB.DocumentClient({ region: "ap-southeast-1" });
 
 exports.handler= function(event, context, callback) {
@@ -27,7 +27,7 @@ const verify76JK= function(event, callback) {
 }
 
 const iterateScanBonsaisFromDynamo= function(event, callback) {
-  var params= { TableName: "BONSAIS-76JK" }
+  var params= { TableName: "76JK-BONSAIS" }
 	if(event.lastEvaluatedKey) { params.ExclusiveStartKey= event.lastEvaluatedKey; }
 	ddc.scan(params, function(err, res) {
     if(err) { callback(err); return; } 
