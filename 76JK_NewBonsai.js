@@ -12,8 +12,7 @@ exports.handler= function(event, context, callback) {
   const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
   updateBonsaiIntoDynamo(event, function(err, res) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_BONSAI_INTO_DYNAMO::" + (now- last)); last= now;
-    if(err) { context.fail("501::76JK_NEW_BONSAI::UPDATE_BONSAI_INTO_DYNAMO::" + err.toString()); return; }
-    // TODO: GENERATE STATIC
+    if(err) { context.fail("501::76JK_NEW_BONSAI::UPDATE_BONSAI_INTO_DYNAMO::" + err.toString()); return; } 
     generateQR(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GENERATE_QR::" + (now- last)); last= now;
       if(err) { context.fail("502::76JK_NEW_BONSAI::GENERATE_QR::" + err.toString()); return; } 
