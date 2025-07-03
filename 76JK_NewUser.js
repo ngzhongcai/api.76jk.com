@@ -22,8 +22,8 @@ exports.handler= function(event, context, callback) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_USER_INTO_DYNAMO::" + (now- last)); last= now;
         if(err) { context.fail("503::76JK_NEW_USER::UPDATE_USER_INTO_DYNAMO::" + err.toString()); return; }
         processEmailViaSNS(event, function(err, res) {
-          now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_USER_INTO_DYNAMO::" + (now- last)); last= now;
-          if(err) { context.fail("504::76JK_NEW_USER::UPDATE_USER_INTO_DYNAMO::" + err.toString()); return; }
+          now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("PROCESS_EMAIL_VIA_SNS::" + (now- last)); last= now;
+          if(err) { context.fail("504::76JK_NEW_USER::PROCESS_EMAIL_VIA_SNS::" + err.toString()); return; }
           const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
           const response= { userId: event.body.userId };
           context.succeed({ "response": response });
