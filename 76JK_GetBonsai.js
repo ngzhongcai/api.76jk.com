@@ -28,7 +28,7 @@ const verify76JK= function(event, callback) {
 
 const getBonsaiFromDynamo= function(event, callback) {
 	const params= {
-		TableName: "BONSAIS-76JK", ConsistentRead: true,
+		TableName: "76JK-BONSAIS", ConsistentRead: true,
 		Key: { "bonsaiId": event.body.bonsaiId }
 	}
 	ddc.get(params, function(err, res) {
