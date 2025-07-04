@@ -54,7 +54,7 @@ const updateUserIntoDynamo= function(event, callback) {
   const updateExpression=
     "SET email= :email, " +
     "password= :password, " +
-    "bonsais= :bonsais, " +
+    "tags= :tags, " +
     "token_= :token_, " +
     "isVerified= :isVerified, " +
 		"lastModified= :lastModified, " +
@@ -62,7 +62,7 @@ const updateUserIntoDynamo= function(event, callback) {
 	const expressionAttributeValues= { 
 		":email": event.body.email,
     ":password": event.body.hashed,
-    ":bonsais": [],
+    ":tags": [],
     ":token_": event.body.token,
     ":isVerified": false,
 		":lastModified": event.body.now,

@@ -12,16 +12,16 @@ exports.handler= function(event, context, callback) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_76JK::" + (now- last)); last= now;
 		if(err) { context.fail("501::76JK_NEW_ENTRY::VERIFY_76JK::" + err.toString()); return; }
 		event.jk= res; if(event.jk.redirect_uri) { context.fail("401::76JK_NEW_ENTRY::NOT_ALLOWED"); return; }
-    updateBonsaiIntoDynamo(event, function(err, res) {
-      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_BONSAI_INTO_DYNAMO::" + (now- last)); last= now;
-      if(err) { context.fail("502::76JK_NEW_ENTRY::UPDATE_BONSAI_INTO_DYNAMO::" + err.toString()); return; }
+    updateTagIntoDynamo(event, function(err, res) {
+      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_TAG_INTO_DYNAMO::" + (now- last)); last= now;
+      if(err) { context.fail("502::76JK_NEW_ENTRY::UPDATE_TAG_INTO_DYNAMO::" + err.toString()); return; }
       uploadPicture(event, function(err, res) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_PICTURE::" + (now- last)); last= now;
         if(err) { context.fail("503::76JK_NEW_ENTRY::UPLOAD_PICTURE::" + err.toString()); return; }
 
 
         const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
-        const response= { bonsaiId: event.body.bonsaiId };
+        const response= { tagId: event.body.tagId };
         context.succeed({ "response": response });
       });
     });
@@ -35,7 +35,7 @@ const verify76JK= function(event, callback) {
   });
 }
 
-const updateBonsaiIntoDynamo= function(event, callback) {
+const updateTagIntoDynamo= function(event, callback) {
   const updateExpression=
     "SET entries= list_append(entries, :entry)";
 	const expressionAttributeValues= {     
@@ -48,8 +48,8 @@ const updateBonsaiIntoDynamo= function(event, callback) {
     }]
 	}
 	const params= {
-		TableName: "76JK-BONSAIS",
-    Key: { "bonsaiId": event.body.bonsaiId },
+		TableName: "76JK-TAGS",
+    Key: { "tagId": event.body.tagId },
 		UpdateExpression: updateExpression,
 		ExpressionAttributeValues: expressionAttributeValues,
 		ReturnValues: "UPDATED_NEW"
@@ -65,7 +65,7 @@ const uploadPicture= function(event, callback) {
   const buffer= Buffer.from(base64String, "base64");
   const params= {
     Bucket: "console.76jk.com",
-    Key: "images/" + event.body.bonsaiId + "/" + event.body.entryId + ".jpeg",
+    Key: "images/" + event.body.tagId + "/" + event.body.entryId + ".jpeg",
     Body: buffer,
     ContentType: "image/jpeg"
   }
@@ -73,3 +73,16 @@ const uploadPicture= function(event, callback) {
     err ? callback(err) : callback(null, res);
   });
 } 
+
+const invokeGenerateStatic= function(event, callback) {
+  const params= {
+    FunctionName: "76JK_GenerateStatic",
+    Payload: JSON.stringify(event)
+	}
+	lambda.invoke(params, function(err, res) {
+		if(err) { callback(err); return; }
+    const payload= JSON.parse(res.Payload);
+		if(payload.errorMessage) { callback(payload.errorMessage); return; }
+		callback(null, payload);
+	});
+}

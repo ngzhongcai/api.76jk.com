@@ -8,11 +8,11 @@ exports.handler= function(event, context, callback) {
   const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
   verify76JK(event, function(err, res) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_76JK::" + (now- last)); last= now;
-    if(err) { context.fail("501::76JK_GET_COLLECTION::VERIFY_76JK::" + err.toString()); return; }
-    event.jk= res; if(event.jk.redirect_uri) { context.fail("401::76JK_GET_BONSAIS::NOT_ALLOWED"); return; }
-    queryBonsaisFromDynamo(event, function(err, res) {
-      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("ITERATE_SCAN_BONSAIS_FROM_DYNAMO::" + (now- last)); last= now;
-      if(err) { context.fail("502::76JK_GET_COLLECTION::ITERATE_SCAN_BONSAIS_FROM_DYNAMO::" + err.toString()); return; } 
+    if(err) { context.fail("501::76JK_GET_TAGS::VERIFY_76JK::" + err.toString()); return; }
+    event.jk= res; if(event.jk.redirect_uri) { context.fail("401::76JK_GET_TAGS::NOT_ALLOWED"); return; }
+    queryTagsFromDynamo(event, function(err, res) {
+      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("QUERY_TAGS_FROM_DYNAMO::" + (now- last)); last= now;
+      if(err) { context.fail("502::76JK_GET_TAGS::QUERY_TAGS_FROM_DYNAMO::" + err.toString()); return; } 
       const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj); 
       context.succeed({ "response": res });
     });
@@ -26,9 +26,9 @@ const verify76JK= function(event, callback) {
   });
 }
 
-const queryBonsaisFromDynamo= function(event, callback) {
+const queryTagsFromDynamo= function(event, callback) {
 	const params= {
-		TableName: "76JK-BONSAIS", IndexName: "USERID",
+		TableName: "76JK-TAGS", IndexName: "USERID",
 		KeyConditionExpression: "userId= :userId",
 		ExpressionAttributeValues: { ":userId": event.jk.userId }
 	}
@@ -38,6 +38,6 @@ const queryBonsaisFromDynamo= function(event, callback) {
     event.lastEvaluatedKey= res.LastEvaluatedKey || undefined;
     event.records= event.records ? event.records.concat(res.Items) : res.Items;
     if(!event.lastEvaluatedKey) { callback(null, event.records); return; }
-    queryBonsaisFromDynamo(event, callback);
+    queryTagsFromDynamo(event, callback);
 	});
 }
