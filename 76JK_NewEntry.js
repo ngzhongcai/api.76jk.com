@@ -1,9 +1,9 @@
 "use strict";
 const SECRET= "cbebfd6c-84da-439b-853b-6a0a50b63edb";
-const aws= require("aws-sdk"); const jwt= require("jsonwebtoken");
+const aws= require("aws-sdk"); const jwt= require("jsonwebtoken"); const uuid= require("uuid");
 const s3= new aws.S3({ region: "ap-southeast-1" });
-const ddc= new aws.DynamoDB.DocumentClient({ region: "ap-southeast-1" }); 
-const uuid= require("uuid");
+const ddc= new aws.DynamoDB.DocumentClient({ region: "ap-southeast-1" });
+const lambda= new aws.Lambda({ region: "ap-southeast-1" });
 
 exports.handler= function(event, context, callback) {
   console.log(event); event.body.entryId= uuid.v4();
@@ -18,6 +18,8 @@ exports.handler= function(event, context, callback) {
       uploadPicture(event, function(err, res) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_PICTURE::" + (now- last)); last= now;
         if(err) { context.fail("503::76JK_NEW_ENTRY::UPLOAD_PICTURE::" + err.toString()); return; }
+
+
         const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
         const response= { bonsaiId: event.body.bonsaiId };
         context.succeed({ "response": response });
@@ -46,7 +48,7 @@ const updateBonsaiIntoDynamo= function(event, callback) {
     }]
 	}
 	const params= {
-		TableName: "BONSAIS-76JK",
+		TableName: "76JK-BONSAIS",
     Key: { "bonsaiId": event.body.bonsaiId },
 		UpdateExpression: updateExpression,
 		ExpressionAttributeValues: expressionAttributeValues,

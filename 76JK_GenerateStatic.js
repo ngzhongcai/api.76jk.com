@@ -20,8 +20,12 @@ exports.handler= function(event, context, callback) {
         createInvalidation(event, function(err, res) {
           now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("CREATE_INVALIDATION::" + (now- last)); last= now;
           if(err) { context.fail("504::76JK_GENERATE_STATIC::CREATE_INVALIDATION::" + err.toString()); return; }
-          const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj); 
-          context.succeed({ "response": res });
+          invokeGenerateStatic(event, function(err, res) {
+            now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("INVOKE_GENERATE_STATIC::" + (now- last)); last= now;
+            if(err) { context.fail("505::76JK_GENERATE_STATIC::INVOKE_GENERATE_STATIC::" + err.toString()); return; }
+            const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj); 
+            context.succeed({ "response": res });
+          });
         });
       });
     });
@@ -50,9 +54,9 @@ const generateStatic= async function(event, callback) {
   await page.goto("https://76jk.com/index.html");
   await page.waitForSelector("#login-email"); 
   await page.type("#login-email", "ngzhongcai@digitively.com");
-  await page.type("#login-password", "Gjw7vda9");
+  await page.type("#login-password", "456");
   await page.click("#login-btn");
-  await page.waitForSelector("#bonsais", { visible: true });
+  await page.waitForSelector("#collection", { visible: true });
   await page.goto("https://76jk.com/bonsai.html?bonsaiId=" + event.body.bonsaiId);
   await page.waitForSelector("#h1Actions", { visible: true });
   event.body.html= await page.content();
@@ -61,7 +65,7 @@ const generateStatic= async function(event, callback) {
 };
 
 const uploadStatic= function(event, callback) {
-  var params= {
+  const params= {
     Bucket: "console.76jk.com",
     Key: "statics/" + event.body.bonsaiId + ".html",
     Body: event.body.html,
@@ -84,4 +88,17 @@ const createInvalidation= function(event, callback) {
   cloudfront.createInvalidation(params, function(err, res) {
     err ? callback(err) : callback(null, res);
   });
+}
+
+const invokeGenerateStatic= function(event, callback) {
+  const params= {
+    FunctionName: "76JK_GenerateStatic",
+    Payload: JSON.stringify(event)
+	}
+	lambda.invoke(params, function(err, res) {
+		if(err) { callback(err); return; }
+    const payload= JSON.parse(res.Payload);
+		if(payload.errorMessage) { callback(payload.errorMessage); return; }
+		callback(null, payload);
+	});
 }
