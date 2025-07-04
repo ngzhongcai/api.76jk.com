@@ -64,7 +64,7 @@ const generateQR= function(event, callback) {
 const uploadQR= function(event, callback) {
   const params= {
     Bucket: "console.76jk.com",
-    Key: "statics/images/" + "QR_" + event.body.tagId + ".png",
+    Key: "statics/images/" + event.body.tagId + "/QR_" + event.body.tagId + ".png",
     Body: event.body.qr,
     ContentType: "image/png"
   }

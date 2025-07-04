@@ -72,14 +72,14 @@ const updateTagIntoDynamo= function(event, callback) {
 	});
 }
 
-const updateUserIntoDynamo= function(event, callback) {
+const updateUserIntoDynamo= function(event, callback) { 
   const updateExpression=
     "SET tags= list_append(tags, :tag), " +
 		"lastModified= :lastModified";
 	const expressionAttributeValues= { 
-    ":tag": [event.body.tag], 
+    ":tag": [event.body.tagId], 
 		":lastModified": event.body.now
-	}
+	} 
 	const params= {
 		TableName: "76JK-USERS",
 		Key: { "userId": event.jk.userId },
