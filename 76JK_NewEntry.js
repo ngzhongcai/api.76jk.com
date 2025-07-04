@@ -54,7 +54,7 @@ const updateTagIntoDynamo= function(event, callback) {
     Key: { "tagId": event.body.tagId },
 		UpdateExpression: updateExpression,
 		ExpressionAttributeValues: expressionAttributeValues,
-		ReturnValues: "UPDATED_NEW"
+		ReturnValues: "ALL_NEW"
 	}
 	ddc.update(params, function(err, res) {
 		err ? callback(err) : callback(null, res.Attributes);
@@ -74,19 +74,6 @@ const uploadPicture= function(event, callback) {
   s3.putObject(params, function(err, res) {
     err ? callback(err) : callback(null, res);
   });
-} 
-
-const invokeGenerateStatic= function(event, callback) {
-  const params= {
-    FunctionName: "76JK_GenerateStatic",
-    Payload: JSON.stringify(event)
-	}
-	lambda.invoke(params, function(err, res) {
-		if(err) { callback(err); return; }
-    const payload= JSON.parse(res.Payload);
-		if(payload.errorMessage) { callback(payload.errorMessage); return; }
-		callback(null, payload);
-	});
 }
 
 const processGenerateStaticViaSNS= function(event, callback) {

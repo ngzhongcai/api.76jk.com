@@ -73,7 +73,7 @@ const updateUserIntoDynamo= function(event, callback) {
 		Key: { "userId": event.body.userId },
 		UpdateExpression: updateExpression,
 		ExpressionAttributeValues: expressionAttributeValues,
-		ReturnValues: "UPDATED_NEW"
+		ReturnValues: "ALL_NEW"
 	}
   ddc.update(params, function(err, res) {
     err ? callback(err) : callback(null, res.Attributes);
