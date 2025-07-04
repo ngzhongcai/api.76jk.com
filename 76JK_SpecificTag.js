@@ -11,18 +11,13 @@ exports.handler= function(event, context, callback) {
   const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
   updateTagIntoDynamo(event, function(err, res) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_TAG_INTO_DYNAMO::" + (now- last)); last= now;
-    if(err) { context.fail("501::76JK_CREATE_TAG::UPDATE_TAG_INTO_DYNAMO::" + err.toString()); return; } 
-    generateQR(event, function(err, res) {
-      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GENERATE_QR::" + (now- last)); last= now;
-      if(err) { context.fail("502::76JK_CREATE_TAG::GENERATE_QR::" + err.toString()); return; } 
-      event.body.qr= res;
-      uploadQR(event, function(err, res) {
-        now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_QR::" + (now- last)); last= now;
-        if(err) { context.fail("503::76JK_CREATE_TAG::UPLOAD_QR::" + err.toString()); return; } 
-        const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
-        const response= { tagId: event.body.tagId, dynamic: "https://76jk.com/tag.html?tagId=" + event.body.tagId };
-        context.succeed({ "response": response });
-      });
+    if(err) { context.fail("501::76JK_SPECIFIC_TAG::UPDATE_TAG_INTO_DYNAMO::" + err.toString()); return; } 
+    processGenerateQRViaSNS(event, function(err, res) {
+      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("PROCESS_GENERATE_STATIC_VIA_SNS::" + (now- last)); last= now;
+      if(err) { context.fail("502::76JK_SPECIFIC_TAG::PROCESS_GENERATE_QR_VIA_SNS::" + err.toString()); return; }
+      const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
+      const response= { tagId: event.body.tagId };
+      context.succeed({ "response": response });
     });
   });
 }
@@ -53,21 +48,12 @@ const updateTagIntoDynamo= function(event, callback) {
 	});
 }
 
-const generateQR= function(event, callback) {
-  const url= "https://76jk.com/statics/" + event.body.tagId + ".html";
-  qrcode.toBuffer(url, function(err, res) { 
-    err ? callback(err) : callback(null, res);
-  });
-}
-
-const uploadQR= function(event, callback) {
-  const params= {
-    Bucket: "console.76jk.com",
-    Key: "statics/images/" + event.body.tagId + "/QR_" + event.body.tagId + ".png",
-    Body: event.body.qr,
-    ContentType: "image/png"
-  }
-  s3.putObject(params, function(err, res) {
+const processGenerateQRViaSNS= function(event, callback) {
+  var msg= {}; msg.jk= event.body.jk; msg.tagId= event.body.tagId;
+  var message= JSON.stringify(msg);
+  var topicArn= "arn:aws:sns:ap-southeast-1:847946740020:76JK_ProcessGenerateQR";
+  var params= { Message: message, TopicArn: topicArn }
+  sns.publish(params, function(err, res) {
     err ? callback(err) : callback(null, res);
   });
 }

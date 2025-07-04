@@ -95,7 +95,7 @@ const updateUserIntoDynamo= function(event, callback) {
 const processGenerateStaticViaSNS= function(event, callback) {
   var msg= {}; msg.jk= event.body.jk; msg.tagId= event.body.tagId;
   var message= JSON.stringify(msg);
-  var topicArn= "arn:aws:sns:ap-southeast-1:847946740020:processGenerateStatic";
+  var topicArn= "arn:aws:sns:ap-southeast-1:847946740020:76JK_ProcessGenerateStatic";
   var params= { Message: message, TopicArn: topicArn }
   sns.publish(params, function(err, res) {
     err ? callback(err) : callback(null, res);
