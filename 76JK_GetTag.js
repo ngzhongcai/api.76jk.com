@@ -9,7 +9,7 @@ exports.handler= function(event, context, callback) {
   verify76JK(event, function(err, res) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_76JK::" + (now- last)); last= now;
     if(err) { context.fail("501::76JK_GET_TAG::VERIFY_76JK::" + err.toString()); return; }
-    event.jk= res; if(event.jk.redirect_uri) { context.fail("401::76JK_GET_TAG::NOT_ALLOWED"); return; }
+    event.jk= res;
     getTagFromDynamo(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GET_TAG_FROM_DYNAMO::" + (now- last)); last= now;
       if(err) { context.fail("502::76JK_GET_TAG::GET_TAG_FROM_DYNAMO::" + err.toString()); return; }
