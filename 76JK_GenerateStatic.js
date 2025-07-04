@@ -70,7 +70,7 @@ const uploadStatic= function(event, callback) {
 
 const createInvalidation= function(event, callback) {
   const params= {
-    DistributionId: "E3TR2Y8CQMMHCY",
+    DistributionId: "EWH66K8CF2UI2",
     InvalidationBatch: {
       CallerReference: uuid.v4(),
       Paths: { Quantity: 1, Items: ["/*"] }

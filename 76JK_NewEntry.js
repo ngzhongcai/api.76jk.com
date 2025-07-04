@@ -18,11 +18,13 @@ exports.handler= function(event, context, callback) {
       uploadPicture(event, function(err, res) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_PICTURE::" + (now- last)); last= now;
         if(err) { context.fail("503::76JK_NEW_ENTRY::UPLOAD_PICTURE::" + err.toString()); return; }
-
-
-        const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
-        const response= { tagId: event.body.tagId };
-        context.succeed({ "response": response });
+        invokeGenerateStatic(event, function(err, res) {
+          now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("INVOKE_GENERATE_STATIC::" + (now- last)); last= now;
+          if(err) { context.fail("504::76JK_NEW_ENTRY::INVOKE_GENERATE_STATIC::" + err.toString()); return; }
+          const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
+          const response= { tagId: event.body.tagId };
+          context.succeed({ "response": response });
+        });
       });
     });
   });
