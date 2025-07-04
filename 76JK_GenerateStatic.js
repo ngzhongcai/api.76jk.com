@@ -1,39 +1,27 @@
 "use strict";
 const SECRET= "cbebfd6c-84da-439b-853b-6a0a50b63edb";
-const aws= require("aws-sdk"); const jwt= require("jsonwebtoken"); const uuid= require("uuid");
+const aws= require("aws-sdk"); const uuid= require("uuid");
 const s3= new aws.S3({ region: "ap-southeast-1" });
 const cloudfront= new aws.CloudFront({ region: "us-east-1" });
 
 exports.handler= function(event, context, callback) {
-  console.log(event);
+  event.body= JSON.parse(event.Records[0].Sns.Message); console.log(event.body);
   const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
-  verify76JK(event, function(err, res) {
-    now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_76JK::" + (now- last)); last= now;
-    if(err) { context.fail("501::76JK_GENERATE_STATIC::VERIFY_76JK::" + err.toString()); return; }
-    event.jk= res; if(event.jk.redirect_uri) { context.fail("401::76JK_GENERATE_STATIC::NOT_ALLOWED"); return; }
-    generateStatic(event, function(err, res) {
-      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GENERATE_STATIC::" + (now- last)); last= now;
-      if(err) { context.fail("502::76JK_GENERATE_STATIC::GENERATE_STATIC::" + err.toString()); return; }
-      uploadStatic(event, function(err, res) {
-        now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_STATIC::" + (now- last)); last= now;
-        if(err) { context.fail("503::76JK_GENERATE_STATIC::UPLOAD_STATIC::" + err.toString()); return; }
-        createInvalidation(event, function(err, res) {
-          now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("CREATE_INVALIDATION::" + (now- last)); last= now;
-          if(err) { context.fail("504::76JK_GENERATE_STATIC::CREATE_INVALIDATION::" + err.toString()); return; }
-          const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
-          context.succeed({ "response": res });
-        });
+  generateStatic(event, function(err, res) {
+    now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GENERATE_STATIC::" + (now- last)); last= now;
+    if(err) { context.fail("501::76JK_GENERATE_STATIC::GENERATE_STATIC::" + err.toString()); return; }
+    uploadStatic(event, function(err, res) {
+      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_STATIC::" + (now- last)); last= now;
+      if(err) { context.fail("502::76JK_GENERATE_STATIC::UPLOAD_STATIC::" + err.toString()); return; }
+      createInvalidation(event, function(err, res) {
+        now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("CREATE_INVALIDATION::" + (now- last)); last= now;
+        if(err) { context.fail("503::76JK_GENERATE_STATIC::CREATE_INVALIDATION::" + err.toString()); return; }
+        const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
+        context.succeed({ "response": res });
       });
     });
   });
-}
-
-const verify76JK= function(event, callback) {
-  jwt.verify(event.body.jk, SECRET, function(err, res) {
-    if(err && err.name=="TokenExpiredError") { callback(null, "TokenExpiredError"); return; }
-    err ? callback(err) : callback(null, res);
-  });
-}
+} 
 
 const generateStatic= async function(event, callback) {
   const chromiumModule= await import("@sparticuz/chromium");

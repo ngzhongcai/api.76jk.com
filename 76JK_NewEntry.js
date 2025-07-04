@@ -3,7 +3,7 @@ const SECRET= "cbebfd6c-84da-439b-853b-6a0a50b63edb";
 const aws= require("aws-sdk"); const jwt= require("jsonwebtoken"); const uuid= require("uuid");
 const s3= new aws.S3({ region: "ap-southeast-1" });
 const ddc= new aws.DynamoDB.DocumentClient({ region: "ap-southeast-1" });
-const lambda= new aws.Lambda({ region: "ap-southeast-1" });
+const sns= new aws.SNS({ region: "ap-southeast-1" });
 
 exports.handler= function(event, context, callback) {
   console.log(event); event.body.entryId= uuid.v4();
@@ -18,9 +18,9 @@ exports.handler= function(event, context, callback) {
       uploadPicture(event, function(err, res) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_PICTURE::" + (now- last)); last= now;
         if(err) { context.fail("503::76JK_NEW_ENTRY::UPLOAD_PICTURE::" + err.toString()); return; }
-        invokeGenerateStatic(event, function(err, res) {
-          now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("INVOKE_GENERATE_STATIC::" + (now- last)); last= now;
-          if(err) { context.fail("504::76JK_NEW_ENTRY::INVOKE_GENERATE_STATIC::" + err.toString()); return; }
+        processGenerateStaticViaSNS(event, function(err, res) {
+          now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("PROCESS_GENERATE_STATIC_VIA_SNS::" + (now- last)); last= now;
+          if(err) { context.fail("504::76JK_NEW_ENTRY::PROCESS_GENERATE_STATIC_VIA_SNS::" + err.toString()); return; }
           const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
           const response= { tagId: event.body.tagId };
           context.succeed({ "response": response });
@@ -87,4 +87,14 @@ const invokeGenerateStatic= function(event, callback) {
 		if(payload.errorMessage) { callback(payload.errorMessage); return; }
 		callback(null, payload);
 	});
+}
+
+const processGenerateStaticViaSNS= function(event, callback) {
+  var msg= {}; msg.jk= event.body.jk; msg.tagId= event.body.tagId;
+  var message= JSON.stringify(msg);
+  var topicArn= "arn:aws:sns:ap-southeast-1:847946740020:processGenerateStatic";
+  var params= { Message: message, TopicArn: topicArn }
+  sns.publish(params, function(err, res) {
+    err ? callback(err) : callback(null, res);
+  });
 }
