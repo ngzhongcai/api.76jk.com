@@ -7,7 +7,7 @@ const sns= new aws.SNS({ region: "ap-southeast-1" });
 const uuid= require("uuid"); 
 
 exports.handler= function(event, context, callback) {
-  console.log(event); event.body= {}; event.body.tagId= uuid.v4();
+  console.log(event); event.body.tagId= uuid.v4();
   const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
   updateTagIntoDynamo(event, function(err, res) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_TAG_INTO_DYNAMO::" + (now- last)); last= now;

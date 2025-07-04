@@ -42,7 +42,7 @@ const generateQR= async function(event, callback) {
 const uploadQR= function(event, callback) {
   const params= {
     Bucket: "console.76jk.com",
-    Key: "statics/images/" + event.body.tagId + "/QR" + event.body.tagId + ".png",
+    Key: "statics/images/" + event.body.tagId + "/QR_" + event.body.tagId + ".png",
     Body: Buffer.from(event.body.base64, "base64"),
     ContentType: "image/png"
   };
