@@ -67,7 +67,7 @@ const uploadPicture= function(event, callback) {
   const buffer= Buffer.from(base64String, "base64");
   const params= {
     Bucket: "console.76jk.com",
-    Key: "images/" + event.body.tagId + "/" + event.body.entryId + ".jpeg",
+    Key: "statics/images/" + event.body.tagId + "/" + event.body.entryId + ".jpeg",
     Body: buffer,
     ContentType: "image/jpeg"
   }
