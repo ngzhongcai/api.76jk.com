@@ -1,10 +1,9 @@
 // NOTE: FUNCTION TO BE CALLED MANUALLY BY ADMIN ONLY 
 "use strict";
 const SECRET= "cbebfd6c-84da-439b-853b-6a0a50b63edb";
-const aws= require("aws-sdk");
-const s3= new aws.S3({ region: "ap-southeast-1" });
+const aws= require("aws-sdk"); 
 const ddc= new aws.DynamoDB.DocumentClient({ region: "ap-southeast-1" });
-const qrcode= require("qrcode");
+const sns= new aws.SNS({ region: "ap-southeast-1" }); 
 
 exports.handler= function(event, context, callback) {
   console.log(event);
