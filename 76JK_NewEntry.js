@@ -4,6 +4,7 @@ const aws= require("aws-sdk"); const jwt= require("jsonwebtoken"); const uuid= r
 const s3= new aws.S3({ region: "ap-southeast-1" });
 const ddc= new aws.DynamoDB.DocumentClient({ region: "ap-southeast-1" });
 const sns= new aws.SNS({ region: "ap-southeast-1" });
+const sharp= require("sharp");
 
 exports.handler= function(event, context, callback) {
   console.log(event); event.body.entryId= uuid.v4();
@@ -15,17 +16,22 @@ exports.handler= function(event, context, callback) {
     updateTagIntoDynamo(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_TAG_INTO_DYNAMO::" + (now- last)); last= now;
       if(err) { context.fail("502::76JK_NEW_ENTRY::UPDATE_TAG_INTO_DYNAMO::" + err.toString()); return; }
-      uploadOriginal(event, function(err, res) {
-        now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_ORIGINAL::" + (now- last)); last= now;
-        if(err) { context.fail("503::76JK_NEW_ENTRY::UPLOAD_ORIGINAL::" + err.toString()); return; }
-        processGenerateStaticViaSNS(event, function(err, res) {
-          now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("PROCESS_GENERATE_STATIC_VIA_SNS::" + (now- last)); last= now;
-          if(err) { context.fail("504::76JK_NEW_ENTRY::PROCESS_GENERATE_STATIC_VIA_SNS::" + err.toString()); return; }
-          const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
-          const response= { tagId: event.body.tagId };
-          context.succeed({ "response": response });
+      compressPhoto(event, function(err, res) {
+        now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("COMPRESS_PHOTO::" + (now- last)); last= now;
+        if(err) { context.fail("503::76JK_NEW_ENTRY::COMPRESS_PHOTO::" + err.toString()); return; }
+        event.body.compressed= res;
+        uploadPhoto(event, function(err, res) {
+          now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_PHOTO::" + (now- last)); last= now;
+          if(err) { context.fail("504::76JK_NEW_ENTRY::UPLOAD_PHOTO::" + err.toString()); return; }
+          processGenerateStaticViaSNS(event, function(err, res) {
+            now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("PROCESS_GENERATE_STATIC_VIA_SNS::" + (now- last)); last= now;
+            if(err) { context.fail("505::76JK_NEW_ENTRY::PROCESS_GENERATE_STATIC_VIA_SNS::" + err.toString()); return; }
+            const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
+            const response= { tagId: event.body.tagId };
+            context.succeed({ "response": response });
+          });
         });
-      });
+      }); 
     });
   });
 }
@@ -61,17 +67,23 @@ const updateTagIntoDynamo= function(event, callback) {
 	});
 }
 
-const uploadOriginal= function(event, callback) {
+const compressPhoto= function(event, callback) {
   const base64String= decodeURIComponent(event.body.photo);
-  event.body.buffer= Buffer.from(base64String, "base64");
+  const imageBuffer= Buffer.from(base64String, "base64");
+  sharp(imageBuffer).rotate().resize(1080).jpeg({ quality: 80 }).toBuffer(function(err, res) {
+    err ? callback(err) : callback(null, res);
+  });
+}
+
+const uploadPhoto= function(event, callback) {  
   const params= {
     Bucket: "console.76jk.com",
-    Key: "statics/images/" + event.body.tagId + "/ORIGINAL_" + event.body.entryId + ".jpeg",
-    Body: event.body.buffer,
+    Key: "statics/images/" + event.body.tagId + "/" + event.body.entryId + ".jpeg",
+    Body: event.body.compressed,
     ContentType: "image/jpeg"
-  }
-  s3.putObject(params, function(err, res) {
-    err ? callback(err) : callback(null, res);
+  };
+  s3.putObject(params, function(err, data) {
+    err ? callback(err) : callback(null, data);
   });
 }
 
