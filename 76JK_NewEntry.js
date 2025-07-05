@@ -18,16 +18,12 @@ exports.handler= function(event, context, callback) {
       uploadOriginal(event, function(err, res) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_ORIGINAL::" + (now- last)); last= now;
         if(err) { context.fail("503::76JK_NEW_ENTRY::UPLOAD_ORIGINAL::" + err.toString()); return; }
-        processCompressPhotoViaSNS(event, function(err, res) {
+        processGenerateStaticViaSNS(event, function(err, res) {
           now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("PROCESS_GENERATE_STATIC_VIA_SNS::" + (now- last)); last= now;
           if(err) { context.fail("504::76JK_NEW_ENTRY::PROCESS_GENERATE_STATIC_VIA_SNS::" + err.toString()); return; }
-          processGenerateStaticViaSNS(event, function(err, res) {
-            now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("PROCESS_GENERATE_STATIC_VIA_SNS::" + (now- last)); last= now;
-            if(err) { context.fail("505::76JK_NEW_ENTRY::PROCESS_GENERATE_STATIC_VIA_SNS::" + err.toString()); return; }
-            const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
-            const response= { tagId: event.body.tagId };
-            context.succeed({ "response": response });
-          });
+          const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
+          const response= { tagId: event.body.tagId };
+          context.succeed({ "response": response });
         });
       });
     });
@@ -79,18 +75,8 @@ const uploadOriginal= function(event, callback) {
   });
 }
 
-const processCompressPhotoViaSNS= function(event, callback) {
-  var msg= {}; msg.jk= event.body.jk; msg.tagId= event.body.tagId; msg.photo= event.body.photo;
-  var message= JSON.stringify(msg);
-  var topicArn= "arn:aws:sns:ap-southeast-1:847946740020:76JK_ProcessCompressPhoto";
-  var params= { Message: message, TopicArn: topicArn }
-  sns.publish(params, function(err, res) {
-    err ? callback(err) : callback(null, res);
-  });
-}
-
 const processGenerateStaticViaSNS= function(event, callback) {
-  var msg= {}; msg.jk= event.body.jk; msg.tagId= event.body.tagId;
+  var msg= {}; msg.jk= event.body.jk; msg.tagId= event.body.tagId; msg.entryId= event.body.entryId;
   var message= JSON.stringify(msg);
   var topicArn= "arn:aws:sns:ap-southeast-1:847946740020:76JK_ProcessGenerateStatic";
   var params= { Message: message, TopicArn: topicArn }
