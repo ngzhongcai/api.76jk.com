@@ -38,6 +38,11 @@ const generateStatic= async function(event, callback) {
   await page.setCookie({ name: "jk", value: event.body.jk, domain: "76jk.com", path: "/" });
   await page.goto("https://76jk.com/tag.html?tagId=" + event.body.tagId); 
   await page.waitForSelector("#h1Actions", { visible: true });
+  await page.evaluate(function() {
+    document.querySelectorAll("[data-admin='true']").forEach(function(el) {
+      el.remove();
+    });
+  });
   event.body.html= await page.content();
   await browser.close();
   callback();
