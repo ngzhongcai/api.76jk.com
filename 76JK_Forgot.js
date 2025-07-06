@@ -30,7 +30,7 @@ const queryUserFromDynamo= function(event, callback) {
 	const params= {
 		TableName: "76JK-USERS", IndexName: "EMAIL",
 		KeyConditionExpression: "email= :email",
-		ExpressionAttributeValues: { ":email": event.body.email }
+		ExpressionAttributeValues: { ":email": event.body.email.toLowerCase() }
 	}
 	ddc.query(params, function(err, res) {
 		err ? callback(err) : callback(null, res);

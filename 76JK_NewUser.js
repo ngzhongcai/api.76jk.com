@@ -60,7 +60,7 @@ const updateUserIntoDynamo= function(event, callback) {
 		"lastModified= :lastModified, " +
 		"lastCreated= :lastCreated";
 	const expressionAttributeValues= { 
-		":email": event.body.email,
+		":email": event.body.email.toLowerCase(),
     ":password": event.body.hashed,
     ":tags": [],
     ":token_": event.body.token,
