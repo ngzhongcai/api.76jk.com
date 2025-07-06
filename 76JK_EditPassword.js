@@ -10,15 +10,15 @@ exports.handler= function(event, context, callback) {
   const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
   hashPassword(event, function(err, res) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("HASH_PASSWORD::" + (now- last)); last= now;
-    if(err) { context.fail("502::76JK_CHANGE::HASH_PASSWORD::" + err.toString()); return; }
+    if(err) { context.fail("502::76JK_EDIT_PASSWORD::HASH_PASSWORD::" + err.toString()); return; }
     event.body.hashed= res;
     updateUserIntoDynamo(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_USER_INTO_DYNAMO::" + (now- last)); last= now;
-      if(err) { context.fail("503::76JK_CHANGE::UPDATE_USER_INTO_DYNAMO::" + err.toString()); return; }
+      if(err) { context.fail("503::76JK_EDIT_PASSWORD::UPDATE_USER_INTO_DYNAMO::" + err.toString()); return; }
       event.user= res;
       generateResponse(event, function(err, res) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GENERATE_RESPONSE::" + (now- last)); last= now;
-        if(err) { context.fail("503::76JK_CHANGE::GENERATE_RESPONSE::" + err.toString()); return; }
+        if(err) { context.fail("503::76JK_EDIT_PASSWORD::GENERATE_RESPONSE::" + err.toString()); return; }
         const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
         context.succeed({ "response": res });
       });

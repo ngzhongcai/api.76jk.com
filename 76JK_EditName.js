@@ -8,11 +8,11 @@ exports.handler= function(event, context, callback) {
   const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
   verify76JK(event, function(err, res) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_76JK::" + (now- last)); last= now;
-    if(err) { context.fail("501::76JK_CHANGE_NAME::VERIFY_76JK::" + err.toString()); return; }
+    if(err) { context.fail("501::76JK_EDIT_NAME::VERIFY_76JK::" + err.toString()); return; }
     event.jk= res;
     updateTagIntoDynamo(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_TAG_INTO_DYNAMO::" + (now- last)); last= now;
-      if(err) { context.fail("502::76JK_CHANGE_NAME::UPDATE_TAG_INTO_DYNAMO::" + err.toString()); return; }
+      if(err) { context.fail("502::76JK_EDIT_NAME::UPDATE_TAG_INTO_DYNAMO::" + err.toString()); return; }
       const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj); 
       context.succeed({ "response": res });
     });

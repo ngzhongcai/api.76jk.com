@@ -67,8 +67,8 @@ const processEmailViaSNS= function(event, callback) {
     "<h2>Password Reset Request 🔐</h2>" +
     "<p>We received a request to reset the password for your <strong>76JK</strong> account — your personal Bonsai journal.</p>" +
     "<p>If you made this request, please click the link below to reset your password:</p>" +
-    "<p><a href='https://76jk.com/change.html?userId=" + event.user.userId + "&token=" + event.body.token + "'>" +
-    "https://76jk.com/change.html?userId=" + event.user.userId + "&token=" + event.body.token + "</a></p>" +
+    "<p><a href='https://76jk.com/editPassword.html?userId=" + event.user.userId + "&token=" + event.body.token + "'>" +
+    "https://76jk.com/editPassword.html?userId=" + event.user.userId + "&token=" + event.body.token + "</a></p>" +
     "<p>If you didn’t request a password reset, you can safely ignore this email — your account remains secure.</p>" +
     "<br/><p>Stay rooted 🌿<br/>– The 76JK Team</p>" +
     "</div>";
