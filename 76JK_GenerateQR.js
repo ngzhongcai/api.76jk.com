@@ -10,7 +10,7 @@ exports.handler= function(event, context, callback) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GENERATE_QR::" + (now- last)); last= now;
     if(err) { context.fail("501::76JK_GENERATE_QR::GENERATE_QR::" + err.toString()); return; }
     event.body.base64= res.replace(/^data:image\/png;base64,/, "");
-    uploadQR(event, function(err, res) {
+    uploadQR_TO_S3(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_QR::" + (now- last)); last= now;
       if(err) { context.fail("502::76JK_GENERATE_QR::UPLOAD_QR::" + err.toString()); return; }
       const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
@@ -39,7 +39,7 @@ const generateQR= async function(event, callback) {
   callback(null, base64DataUrl);
 }; 
 
-const uploadQR= function(event, callback) {
+const uploadQR_TO_S3= function(event, callback) {
   const params= {
     Bucket: "console.76jk.com",
     Key: "statics/images/" + event.body.tagId + "/QR_" + event.body.tagId + ".png",

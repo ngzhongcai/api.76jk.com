@@ -20,9 +20,9 @@ exports.handler= function(event, context, callback) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("COMPRESS_PHOTO::" + (now- last)); last= now;
         if(err) { context.fail("503::76JK_NEW_ENTRY::COMPRESS_PHOTO::" + err.toString()); return; }
         event.body.compressed= res;
-        uploadPhoto(event, function(err, res) {
-          now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_PHOTO::" + (now- last)); last= now;
-          if(err) { context.fail("504::76JK_NEW_ENTRY::UPLOAD_PHOTO::" + err.toString()); return; }
+        uploadPhotoToS3(event, function(err, res) {
+          now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_PHOTO_TO_S3::" + (now- last)); last= now;
+          if(err) { context.fail("504::76JK_NEW_ENTRY::UPLOAD_PHOTO_TO_S3::" + err.toString()); return; }
           processGenerateStaticViaSNS(event, function(err, res) {
             now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("PROCESS_GENERATE_STATIC_VIA_SNS::" + (now- last)); last= now;
             if(err) { context.fail("505::76JK_NEW_ENTRY::PROCESS_GENERATE_STATIC_VIA_SNS::" + err.toString()); return; }
@@ -52,7 +52,7 @@ const updateTagIntoDynamo= function(event, callback) {
       "isPhoto": event.body.photo ? true : false,
       "description": decodeURIComponent(event.body.description),
       "firstCreated": event.body.now,
-      "lastUpdated": event.body.now
+      "lastModified": event.body.now
     }]
 	}
 	const params= {
@@ -75,7 +75,7 @@ const compressPhoto= function(event, callback) {
   });
 }
 
-const uploadPhoto= function(event, callback) {  
+const uploadPhotoToS3= function(event, callback) {  
   const params= {
     Bucket: "console.76jk.com",
     Key: "statics/images/" + event.body.tagId + "/" + event.body.entryId + ".jpeg",

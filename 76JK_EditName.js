@@ -29,10 +29,10 @@ const verify76JK= function(event, callback) {
 const updateTagIntoDynamo= function(event, callback) {
   const updateExpression=
     "SET name_= :name_, " +
-    "lastUpdated= :lastUpdated";
+    "lastModified= :lastModified";
 	const expressionAttributeValues= {
     ":name_": event.body.name, 
-    ":lastUpdated": event.body.now,
+    ":lastModified": event.body.now,
     ":expectedUserId": event.jk.userId   
 	}
   const conditionExpression= "userId= :expectedUserId";

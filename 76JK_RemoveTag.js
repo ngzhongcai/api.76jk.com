@@ -15,7 +15,7 @@ exports.handler= function(event, context, callback) {
     getUserFromDynamo(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GET_USER_FROM_DYNAMO::" + (now- last)); last= now;
       if(err) { context.fail("502::76JK_REMOVE_TAG::GET_USER_FROM_DYNAMO::" + err.toString()); return; }
-      event.body.updatedTags= res.tags.filter(function(tag) { return tag!== event.body.tagId; });
+      event.body.updatedTags= res.tags.filter(function(tagId) { return tagId!== event.body.tagId; });
       updateUserIntoDynamo(event, function(err, res) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_USER_INTO_DYNAMO::" + (now- last)); last= now;
         if(err) { context.fail("503::76JK_REMOVE_TAG::UPDATE_USER_INTO_DYNAMO::" + err.toString()); return; } 

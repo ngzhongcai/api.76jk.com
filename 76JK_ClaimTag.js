@@ -54,11 +54,11 @@ const updateTagIntoDynamo= function(event, callback) {
   const updateExpression=
     "SET name_= :name_, " + 
     "userId= :userId, " +
-    "lastUpdated= :lastUpdated";
+    "lastModified= :lastModified";
 	const expressionAttributeValues= {
     ":name_": event.body.name,
     ":userId": event.jk.userId,
-    ":lastUpdated": event.body.now    
+    ":lastModified": event.body.now    
 	}
 	const params= {
 		TableName: "76JK-TAGS",

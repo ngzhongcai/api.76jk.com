@@ -10,9 +10,9 @@ exports.handler= function(event, context, callback) {
   generateStatic(event, function(err, res) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GENERATE_STATIC::" + (now- last)); last= now;
     if(err) { context.fail("504::76JK_GENERATE_STATIC::GENERATE_STATIC::" + err.toString()); return; }
-    uploadStatic(event, function(err, res) {
-      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_STATIC::" + (now- last)); last= now;
-      if(err) { context.fail("505::76JK_GENERATE_STATIC::UPLOAD_STATIC::" + err.toString()); return; }
+    uploadStaticToS3(event, function(err, res) {
+      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_STATIC_TO_S3::" + (now- last)); last= now;
+      if(err) { context.fail("505::76JK_GENERATE_STATIC::UPLOAD_STATIC_TO_S3::" + err.toString()); return; }
       createInvalidation(event, function(err, res) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("CREATE_INVALIDATION::" + (now- last)); last= now;
         if(err) { context.fail("506::76JK_GENERATE_STATIC::CREATE_INVALIDATION::" + err.toString()); return; }
@@ -48,7 +48,7 @@ const generateStatic= async function(event, callback) {
   callback();
 }; 
 
-const uploadStatic= function(event, callback) {
+const uploadStaticToS3= function(event, callback) {
   const params= {
     Bucket: "console.76jk.com",
     Key: "statics/" + event.body.tagId + ".html",
