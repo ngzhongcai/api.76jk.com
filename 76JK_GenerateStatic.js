@@ -42,6 +42,8 @@ const generateStatic= async function(event, callback) {
     document.querySelectorAll("[data-admin='true']").forEach(function(el) {
       el.remove();
     });
+    document.getElementById("logout").style.display= "none";
+    document.getElementById("login").style.display= "block";
   });
   event.body.html= await page.content();
   await browser.close();
