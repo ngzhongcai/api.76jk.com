@@ -51,7 +51,7 @@ const updateTagIntoDynamo= function(event, callback) {
       "entryId": event.body.entryId,
       "isPhoto": event.body.photo ? true : false,
       "description": decodeURIComponent(event.body.description),
-      "firstCreated": event.body.now,
+      "firstCreated": parseInt(event.body.time * 1000),
       "lastModified": event.body.now
     }]
 	}
