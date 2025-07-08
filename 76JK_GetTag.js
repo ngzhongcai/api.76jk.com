@@ -13,9 +13,8 @@ exports.handler= function(event, context, callback) {
     getTagFromDynamo(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GET_TAG_FROM_DYNAMO::" + (now- last)); last= now;
       if(err) { context.fail("502::76JK_GET_TAG::GET_TAG_FROM_DYNAMO::" + err.toString()); return; }
-      if(res.userId!= event.jk.userId) { context.fail("503::76JK_GET_TAG::GET_TAG_FROM_DYNAMO::" + "NO_ADMIN_ACESS"); return; }
-      const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj); 
-      context.succeed({ "response": res });
+      const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
+      res.userId=== event.jk.userId ? context.succeed({ "response": res }) : context.succeed();
     });
   });
 }
