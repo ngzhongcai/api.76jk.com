@@ -39,9 +39,7 @@ const generateStatic= async function(event, callback) {
   await page.goto("https://76jk.com/tag.html?tagId=" + event.body.tagId, { waitUntil: "networkidle0" });
   await page.waitForSelector("#h1Actions", { visible: true });
   await page.evaluate(function() {
-    document.querySelectorAll("[data-admin='true']").forEach(function(el) {
-      el.remove();
-    });
+    document.querySelectorAll("[data-admin='true']").forEach(function(el) { el.remove(); });
     document.getElementById("logout").style.display= "none";
     document.getElementById("login").style.display= "block";
   });
