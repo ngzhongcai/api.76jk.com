@@ -49,7 +49,6 @@ const updateTagIntoDynamo= function(event, callback) {
 	const expressionAttributeValues= {     
     ":entry": [{
       "entryId": event.body.entryId,
-      "isPhoto": event.body.photo ? true : false,
       "description": decodeURIComponent(event.body.description),
       "firstCreated": parseInt(event.body.time * 1000),
       "lastModified": event.body.now

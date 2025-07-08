@@ -8,7 +8,7 @@ const sharp= require("sharp");
 const { describe } = require("node:test");
 
 exports.handler= function(event, context, callback) {
-  console.log(event); event.body.entryId= uuid.v4();
+  console.log(event);
   const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
   verify76JK(event, function(err, res) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_76JK::" + (now- last)); last= now;
@@ -17,15 +17,10 @@ exports.handler= function(event, context, callback) {
     getTagFromDynamo(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GET_TAG_FROM_DYNAMO::" + (now- last)); last= now;
       if(err) { context.fail("502::76JK_EDIT_ENTRY::GET_TAG_FROM_DYNAMO::" + err.toString()); return; }
+      if(res.userId!= event.jk.userId) { context.fail("401::76JK_EDIT_ENTRY::NO_ACCESS"); return; }
       event.body.tag= res;
-      const entryIndex= event.body.tag.entries.findIndex(function(e) { return e.entryId=== event.body.entryId; });
-      event.body.entries[entryIndex]= {
-        entryId: event.body.entryId,
-        isPhoto: event.body.photo ? true : false,
-        description: decodeURIComponent(event.body.description),
-        firstCreated: event.body.tag.entries[entryIndex].firstCreated,
-        lastModified: event.body.time
-      }
+      event.body.entryIndex= event.body.tag.entries.findIndex(function(e) { return e.entryId=== event.body.entryId; });
+      if(event.body.entryIndex=== -1) { context.fail("402::76JK_EDIT_ENTRY::NO_ACCESS"); return; }
       updateTagIntoDynamo(event, function(err, res) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_TAG_INTO_DYNAMO::" + (now- last)); last= now;
         if(err) { context.fail("503::76JK_EDIT_ENTRY::UPDATE_TAG_INTO_DYNAMO::" + err.toString()); return; }
@@ -68,10 +63,17 @@ const getTagFromDynamo= function(event, callback) {
 }
 
 const updateTagIntoDynamo= function(event, callback) {
+  event.body.tag.entries[event.body.entryIndex]= {
+    entryId: event.body.entryId,
+    description: decodeURIComponent(event.body.description),
+    firstCreated: parseInt(event.body.time) * 1000,
+    lastModified: event.body.now
+  }
+
   const updateExpression=
     "SET entries= :entries";
   const expressionAttributeValues= {     
-    ":entries": event.body.entries 
+    ":entries": event.body.tag.entries 
   }
   const params= {
     TableName: "76JK-TAGS",
