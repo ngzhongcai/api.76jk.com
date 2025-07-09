@@ -1,7 +1,4 @@
 // NOTE: FUNCTION TO BE CALLED MANUALLY BY ADMIN ONLY 
 "use strict"; 
 const uuid= require("uuid");
-
-exports.handler= function(event, context, callback) { 
-  console.log(uuid.v4());
-}
+console.log(uuid.v4());
