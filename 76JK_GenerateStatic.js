@@ -62,11 +62,13 @@ const uploadStaticToS3= function(event, callback) {
 }
 
 const createInvalidation= function(event, callback) { 
+  console.log("/statics/" + event.body.tagId + ".html");
+
   const params= {
     DistributionId: "EWH66K8CF2UI2",
     InvalidationBatch: {
       CallerReference: event.body.now.toString(),
-      Paths: { Quantity: 1, Items: ["/statics/" + event.body.tagId + ".html"] }
+      Paths: { Quantity: 1, Items: ["/*"] } // statics/" + event.body.tagId + ".html
     }
   }
   cloudfront.createInvalidation(params, function(err, res) {
