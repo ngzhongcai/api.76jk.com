@@ -62,6 +62,8 @@ const uploadStaticToS3= function(event, callback) {
 }
 
 const createInvalidation= function(event, callback) {
+  callback(); return;
+  /*
   const params= {
     DistributionId: "EWH66K8CF2UI2",
     InvalidationBatch: {
@@ -72,4 +74,5 @@ const createInvalidation= function(event, callback) {
   cloudfront.createInvalidation(params, function(err, res) {
     err ? callback(err) : callback(null, res);
   });
+  */
 }
