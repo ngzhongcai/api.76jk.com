@@ -25,10 +25,10 @@ exports.handler= function(event, context, callback) {
         event.body.buffer= Buffer.from(decodeURIComponent(event.body.photo), "base64");
         uploadPhotoToS3(event, function(err, res) {
           now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPLOAD_PHOTO_TO_S3::" + (now- last)); last= now;
-          if(err) { context.fail("505::76JK_EDIT_ENTRY::UPLOAD_PHOTO_TO_S3::" + err.toString()); return; }
+          if(err) { context.fail("504::76JK_EDIT_ENTRY::UPLOAD_PHOTO_TO_S3::" + err.toString()); return; }
           processGenerateStaticViaSNS(event, function(err, res) {
             now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("PROCESS_GENERATE_STATIC_VIA_SNS::" + (now- last)); last= now;
-            if(err) { context.fail("506::76JK_EDIT_ENTRY::PROCESS_GENERATE_STATIC_VIA_SNS::" + err.toString()); return; }
+            if(err) { context.fail("505::76JK_EDIT_ENTRY::PROCESS_GENERATE_STATIC_VIA_SNS::" + err.toString()); return; }
             const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
             const response= { tagId: event.body.tagId };
             context.succeed({ "response": response });
