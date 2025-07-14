@@ -4,7 +4,7 @@ const aws= require("aws-sdk"); const jwt= require("jsonwebtoken");
 var iotdata= new aws.IotData({ endpoint: "aur48b9xoo0gq-ats.iot.ap-southeast-1.amazonaws.com" });
 
 exports.handler= function(event, context, callback) { 
-  console.log(event); event.body= {}; const parts= event.path.split("/"); event.body.clip= parts[2];
+  console.log(event); event.body= {}; const parts= event.path.split("/"); event.body.clip= parts[2]; event.body.where= parts[3];
   event.body.jk= getCookieValue(event.headers.Cookie, "jk");
   const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
   verify76JK(event, function(err, res) {
@@ -38,10 +38,8 @@ const verify76JK= function(event, callback) {
   });
 } 
 
-var publishToDisplay= function(event, callback) {
-  if(event.body.notAuthorized) {
-
-  }
+const publishToDisplay= function(event, callback) {
+  if(!event.body.isAuthorized) { callback(); return; }
   var obj= {}; obj.action= "playmp3"; obj.clip= event.body.clip; var payload= JSON.stringify(obj);
   var params= { topic: "NGFAMILY/DISPLAY@NGFAMILY.COM", payload: payload, qos: 0 }
   iotdata.publish(params, function(err) {
@@ -49,14 +47,9 @@ var publishToDisplay= function(event, callback) {
   });
 }
 
-const generateFailedResponse= function(event, callback) {
-  var response= {}; response.statusCode= 302; response.headers= {};
-  response.headers.Location= "https://76jk.com/login.html";
-  callback(null, response); return;
-}
-
 const generateResponse= function(event, callback) {
   var response= {}; response.statusCode= 302; response.headers= {};
-  response.headers.Location= event.body.isAuthorized ? "https://76jk.com/playing.html?clip=" + event.body.clip : "https://76jk.com";
+  response.headers.Location= event.body.isAuthorized ? 
+    "https://76jk.com/playing.html?clip=" + event.body.clip + "&where=" + event.body.where : "https://76jk.com";
   callback(null, response); return;
 }
