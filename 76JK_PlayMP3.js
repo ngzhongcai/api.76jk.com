@@ -3,8 +3,9 @@ const SECRET= process.env.SECRET;
 const aws= require("aws-sdk"); const jwt= require("jsonwebtoken"); 
 var iotdata= new aws.IotData({ endpoint: "aur48b9xoo0gq-ats.iot.ap-southeast-1.amazonaws.com" });
 
-exports.handler= function(event, context, callback) {
-  console.log(event);
+exports.handler= function(event, context, callback) { 
+  console.log(event); event.body= {}; const parts= event.path.split("/"); event.body.clip= parts[2];
+  event.body.jk= getCookieValue(event.headers.Cookie, "jk");
   const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
   verify76JK(event, function(err, res) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_76JK::" + (now- last)); last= now;
@@ -14,11 +15,21 @@ exports.handler= function(event, context, callback) {
     publishToDisplay(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("PUBLISH_TO_DISPLAY::" + (now- last)); last= now;
   		if(err) { context.fail("502::76JK_PLAY_MP3::PUBLISH_TO_DISPLAY::" + err.toString()); return; }
-      var obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
-      context.succeed({ "response": true });
+      generateResponse(event, function(err, res) {
+        now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GENERATE_RESPONSE::" + (now- last)); last= now;
+        if(err) { context.fail("503::76JK_PLAY_MP3::GENERATE_RESPONSE::" + err.toString()); return; }
+        const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj); 
+        context.succeed(res);
+      }); 
     });
   });
 }
+
+const getCookieValue= function(cookieString, name) {
+  var pattern= new RegExp("(^|;\\s*)" + name + "=([^;]*)");
+  var match= cookieString.match(pattern);
+  return match ? match[2] : null;
+};
 
 const verify76JK= function(event, callback) {
   jwt.verify(event.body.jk, SECRET, function(err, res) {
@@ -33,4 +44,10 @@ var publishToDisplay= function(event, callback) {
   iotdata.publish(params, function(err) {
     err ? callback(err) : callback();
   });
+}
+
+const generateResponse= function(event, callback) {
+  var response= {}; response.statusCode= 302; response.headers= {};
+  response.headers.Location= "https://76jk.com/playing.html?clip=958back";
+  callback(null, response); return;
 }
