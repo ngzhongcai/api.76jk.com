@@ -40,7 +40,7 @@ const verify76JK= function(event, callback) {
 
 const publishToDisplay= function(event, callback) {
   if(!event.body.isAuthorized) { callback(); return; }
-  var obj= {}; obj.action= "playmp3"; obj.clip= event.body.clip; var payload= JSON.stringify(obj);
+  var obj= {}; obj.action= "playmp3"; obj.clip= event.body.clip; obj.where= event.body.where; var payload= JSON.stringify(obj);
   var params= { topic: "NGFAMILY/DISPLAY@NGFAMILY.COM", payload: payload, qos: 0 }
   iotdata.publish(params, function(err) {
     err ? callback(err) : callback();
