@@ -10,7 +10,7 @@ exports.handler= function(event, context, callback) {
   verify76JK(event, function(err, res) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_76JK::" + (now- last)); last= now;
     if(err) { context.fail("501::76JK_PLAY_MP3::VERIFY_76JK::" + err.toString()); return; }
-    if(res.userId!== "487b429a-fdfe-4295-be74-f1c8a3f58284") { context.fail("501::76JK_PLAY_MP3::VERIFY_76JK::NO_ACCESS"); return; }
+    event.body.isAuthorized= res.userId=== "487b429a-fdfe-4295-be74-f1c8a3f58284" ? true : false;
     event.jk= res;
     publishToDisplay(event, function(err, res) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("PUBLISH_TO_DISPLAY::" + (now- last)); last= now;
@@ -39,6 +39,9 @@ const verify76JK= function(event, callback) {
 } 
 
 var publishToDisplay= function(event, callback) {
+  if(event.body.notAuthorized) {
+
+  }
   var obj= {}; obj.action= "playmp3"; obj.clip= event.body.clip; var payload= JSON.stringify(obj);
   var params= { topic: "NGFAMILY/DISPLAY@NGFAMILY.COM", payload: payload, qos: 0 }
   iotdata.publish(params, function(err) {
@@ -46,8 +49,14 @@ var publishToDisplay= function(event, callback) {
   });
 }
 
+const generateFailedResponse= function(event, callback) {
+  var response= {}; response.statusCode= 302; response.headers= {};
+  response.headers.Location= "https://76jk.com/login.html";
+  callback(null, response); return;
+}
+
 const generateResponse= function(event, callback) {
   var response= {}; response.statusCode= 302; response.headers= {};
-  response.headers.Location= "https://76jk.com/playing.html?clip=958back";
+  response.headers.Location= event.body.isAuthorized ? "https://76jk.com/playing.html?clip=" + event.body.clip : "https://76jk.com";
   callback(null, response); return;
 }
