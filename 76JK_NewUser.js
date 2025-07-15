@@ -84,6 +84,7 @@ const processEmailViaSNS= function(event, callback) {
   var msg= {}; msg.subject= "Get started with your Bonsai journal 🌱"; 
   msg.fromAddress= "hello@76jk.com"; msg.accountId= 847946740020;
 	msg.toAddresses= [event.body.email];
+  msg.ccAddresses= ["hello@76jk.com"];
   msg.emailBody = 
   "<div style='font-family:Arial,sans-serif;font-size:16px;line-height:1.5;color:#333'>" +
     "<p>Hi there!</p>" +
