@@ -68,7 +68,7 @@ const createInvalidation= function(event, callback) {
     DistributionId: "EWH66K8CF2UI2",
     InvalidationBatch: {
       CallerReference: event.body.now.toString(),
-      Paths: { Quantity: 1, Items: ["/*"] } // statics/" + event.body.tagId + ".html
+      Paths: { Quantity: 1, Items: ["/statics/" + event.body.tagId + ".html"] } // 
     }
   }
   cloudfront.createInvalidation(params, function(err, res) {
