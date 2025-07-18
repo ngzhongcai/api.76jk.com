@@ -14,6 +14,7 @@ exports.handler= function(event, context, callback) {
       now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("GET_TAG_FROM_DYNAMO::" + (now- last)); last= now;
       if(err) { context.fail("502::76JK_GET_TAG::GET_TAG_FROM_DYNAMO::" + err.toString()); return; }
       const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
+      if(!res) { context.succeed(); return; }
       res.userId=== event.jk.userId ? context.succeed({ "response": res }) : context.succeed();
     });
   });
