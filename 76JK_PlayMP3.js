@@ -26,6 +26,7 @@ exports.handler= function(event, context, callback) {
 }
 
 const getCookieValue= function(cookieString, name) {
+  if(!cookieString) { return null; }
   var pattern= new RegExp("(^|;\\s*)" + name + "=([^;]*)");
   var match= cookieString.match(pattern);
   return match ? match[2] : null;
