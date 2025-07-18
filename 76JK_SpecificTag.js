@@ -12,7 +12,7 @@ exports.handler= function(event, context, callback) {
     now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("UPDATE_TAG_INTO_DYNAMO::" + (now- last)); last= now;
     if(err) { context.fail("501::76JK_SPECIFIC_TAG::UPDATE_TAG_INTO_DYNAMO::" + err.toString()); return; } 
     processGenerateQRViaSNS(event, function(err, res) {
-      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("PROCESS_GENERATE_STATIC_VIA_SNS::" + (now- last)); last= now;
+      now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("PROCESS_GENERATE_QR_VIA_SNS::" + (now- last)); last= now;
       if(err) { context.fail("502::76JK_SPECIFIC_TAG::PROCESS_GENERATE_QR_VIA_SNS::" + err.toString()); return; }
       const obj= {}; obj.timings= timings; obj.timetaken= timetaken; console.log(obj);
       const response= { tagId: event.body.tagId };
