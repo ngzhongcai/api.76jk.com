@@ -21,4 +21,4 @@ Each `76JK_*.js` file is an AWS Lambda function. Example:
 
 - `76JK_NewUser.js`: Register new users
 - `76JK_EditEntry.js`: Update plant journal entries
-- `76JK_GenerateStatic.js`: Create static snapshots for public viewing
+- `76JK_GenerateStatic.js`: Create static HTML snapshots for public viewing
