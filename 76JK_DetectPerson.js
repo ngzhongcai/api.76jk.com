@@ -4,7 +4,7 @@ const aws= require("aws-sdk"); const jwt= require("jsonwebtoken");
 var iotdata= new aws.IotData({ endpoint: "aur48b9xoo0gq-ats.iot.ap-southeast-1.amazonaws.com" });
 
 exports.handler= function(event, context, callback) {
-    console.log(event);
+    console.log(event); event.body= {};
     const timings= []; var timetaken= 0; var now= Math.round(new Date().getTime()); var last= Math.round(new Date().getTime()); event.body.now= now;
     verifyToken(event, function(err, res) {
         now= Math.round(new Date().getTime()); timetaken= timetaken+ now- last; timings.push("VERIFY_TOKEN::" + (now- last)); last= now;
